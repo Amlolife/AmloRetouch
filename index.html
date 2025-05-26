@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amlo Panel - V10 (Enhanced Design)</title>
+    <script src="./js/CSInterface.js"></script>
+    <script src="./js/panel.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --panel-bg-start: #0D0F12;
+            --panel-bg-end: #181A1F;
+            --text-color: #E0E4EA;
+            --text-muted-color: #8A8D93;
+            --accent-color: #00E0FF;
+            --accent-color-rgb: 0, 224, 255;
+            --accent-glow-color-rgba: rgba(var(--accent-color-rgb), 0.5);
+            --button-solid-bg-start: #2A2E35;
+            --button-solid-bg-end: #1F2228;
+            --button-text-color: #F0F4F8;
+            --button-border-radius: 10px;
+            --font-family-main: 'Montserrat', sans-serif;
+            --danger-color: #EF5350;
+            --warning-color: #FFA726;
+            --input-bg: #22252B;
+            --grid-line-color: rgba(var(--accent-color-rgb), 0.025);
+            --scrollbar-bg: rgba(0, 0, 0, 0.15);
+            --scrollbar-thumb: var(--accent-color);
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-family-main);
+            background-color: var(--panel-bg-start);
+            background-image: linear-gradient(315deg, var(--panel-bg-start), var(--panel-bg-end));
+            background-size: 200% 200%;
+            animation: backgroundPan 25s ease infinite;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+            user-select: none;
+            position: relative;
+        }
+
+            body::after {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: linear-gradient(var(--grid-line-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line-color) 1px, transparent 1px);
+                background-size: 35px 35px;
+                opacity: 0.7;
+                z-index: -2;
+                pointer-events: none;
+                animation: backgroundFade 12s ease-in-out infinite alternate;
+            }
+
+        @keyframes backgroundFade {
+            0% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes backgroundPan {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .panel-container {
+            display: flex;
+            width: 100%;
+            max-width: 320px;
+            padding: 25px;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            opacity: 1;
+            position: relative;
+            z-index: 1;
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+            gap: 15px;
+        }
+
+        .content-panel {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            gap: 15px;
+        }
+
+            .content-panel.hidden {
+                display: none !important;
+            }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .logo-main {
+            font-size: 3.8rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.1), 0 0 18px var(--accent-glow-color-rgba), 0 0 30px var(--accent-glow-color-rgba), 0 0 50px rgba(var(--accent-color-rgb), 0.3);
+        }
+
+        .logo-sub {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted-color);
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            opacity: 0.8;
+            text-shadow: 0 0 6px rgba(var(--accent-color-rgb), 0.15);
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border-radius: var(--button-border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 46px;
+            transition: all 0.2s ease-out;
+            position: relative;
+            border: 1.5px solid rgba(var(--accent-color-rgb), 0.1);
+            background-image: linear-gradient(140deg, var(--button-solid-bg-start), var(--button-solid-bg-end));
+            color: var(--button-text-color);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35), 0 0 0px var(--accent-color);
+            overflow: hidden;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+            .btn:disabled {
+                opacity: 0.45;
+                cursor: not-allowed;
+                transform: none !important;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+                border-color: rgba(var(--accent-color-rgb), 0.1) !important;
+            }
+
+                .btn:disabled::before {
+                    display: none;
+                }
+
+            .btn svg {
+                width: 18px;
+                height: 18px;
+                margin-right: 10px;
+                stroke: var(--accent-color);
+                stroke-width: 1.8;
+                fill: none;
+                opacity: 0.8;
+                transition: all 0.2s ease-out;
+                flex-shrink: 0;
+            }
+
+            .btn span {
+                flex-grow: 1;
+                text-align: center;
+            }
+
+        .btn-ai::before {
+            content: '';
+            position: absolute;
+            top: -25%;
+            left: -110%;
+            width: 40%;
+            height: 150%;
+            background: linear-gradient(90deg, transparent, rgba(var(--accent-color-rgb), 0.35), transparent);
+            transform: skewX(-30deg);
+            transition: left 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 0;
+            opacity: 0;
+            filter: blur(8px);
+        }
+
+        .btn-ai:not(:disabled):hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.45), 0 0 20px rgba(var(--accent-color-rgb), 0.6), 0 0 6px rgba(var(--accent-color-rgb), 0.5) inset;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+            .btn-ai:not(:disabled):hover svg {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+
+            .btn-ai:not(:disabled):hover::before {
+                left: 170%;
+                opacity: 0.7;
+            }
+
+        .btn-ai:not(:disabled):active {
+            transform: translateY(0px) scale(0.99);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 12px rgba(var(--accent-color-rgb), 0.6), 0 0 4px rgba(var(--accent-color-rgb), 0.4) inset;
+        }
+
+        .btn-ai.loading::before {
+            animation: futuristicLoadingPulse 1.8s ease-in-out infinite;
+            left: -110%;
+            opacity: 0.85;
+        }
+
+        @keyframes futuristicLoadingPulse {
+            0% {
+                left: -110%;
+                opacity: 0.6;
+            }
+
+            100% {
+                left: 170%;
+                opacity: 0.9;
+            }
+        }
+
+        #btnTestAI svg.btn-icon-original {
+            margin-left: 0;
+            margin-right: 10px;
+        }
+
+        /* >>> START OF REVISED CSS FOR BUTTON TEXT <<< */
+        #btnTestAI span {
+            white-space: nowrap; /* Keep text on one line */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Show ellipsis for overflow */
+            min-width: 0; /* Allows the flex item to shrink below its content's intrinsic width. This is key for ellipsis to work in a flex child that also grows. */
+            /* flex-grow: 1; is inherited from .btn span */
+            /* text-align: center; is inherited from .btn span */
+        }
+        /* >>> END OF REVISED CSS FOR BUTTON TEXT <<< */
+
+        .icon-btn {
+            position: absolute;
+            top: 18px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(var(--button-solid-bg-start), 0.6);
+            border: 1px solid rgba(var(--accent-color-rgb), 0.08);
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            z-index: 100;
+        }
+
+            .icon-btn svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-muted-color);
+                stroke-width: 1.8;
+                fill: none;
+                margin: 0;
+                opacity: 0.7;
+                transition: all 0.2s ease-out;
+            }
+
+            .icon-btn:hover {
+                background-color: var(--button-solid-bg-start);
+                border-color: var(--accent-color);
+                box-shadow: 0 0 12px rgba(var(--accent-color-rgb), 0.6);
+                transform: scale(1.05);
+            }
+
+                .icon-btn:hover svg {
+                    stroke: var(--accent-color);
+                    opacity: 1;
+                }
+
+        #btnShowCopyright {
+            right: 18px;
+        }
+
+        #btnGoBack {
+            left: 18px;
+        }
+
+        #btnShowPixabay {
+            right: 62px;
+        }
+
+        #btnGoBackPixabay {
+            left: 18px;
+        }
+
+        #copyrightPanelContent, #pixabayPanelContent {
+            padding: 15px;
+            text-align: left;
+            font-size: 0.88rem;
+            color: var(--text-muted-color);
+            width: 100%;
+            gap: 15px;
+        }
+
+            #copyrightPanelContent h2, #pixabayPanelContent h2 {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: var(--text-color);
+                text-align: center;
+                margin-top: 45px;
+                margin-bottom: 10px;
+                text-shadow: 0 0 10px rgba(var(--accent-color-rgb), 0.5);
+            }
+
+            #copyrightPanelContent p {
+                margin-bottom: 12px;
+                line-height: 1.7;
+            }
+
+            #copyrightPanelContent strong {
+                color: var(--text-color);
+                font-weight: 600;
+            }
+
+            #copyrightPanelContent ul {
+                list-style: disc;
+                margin-left: 25px;
+                margin-bottom: 15px;
+            }
+
+            #copyrightPanelContent a {
+                color: var(--accent-color);
+                text-decoration: none;
+            }
+
+                #copyrightPanelContent a:hover {
+                    text-decoration: underline;
+                    filter: brightness(1.15);
+                }
+
+        #statusMessage {
+            width: 100%;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.8rem;
+            color: var(--text-muted-color);
+            min-height: 25px;
+            margin-top: 10px;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(var(--accent-color-rgb), 0.05);
+        }
+
+        .neon-divider {
+            width: 90%;
+            height: 1px;
+            background-color: rgba(var(--accent-color-rgb), 0.15);
+            box-shadow: 0 0 8px rgba(var(--accent-color-rgb), 0.5), 0 0 4px rgba(var(--accent-color-rgb), 0.3);
+            border: none;
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 10px 0 5px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted-color);
+            opacity: 0.8;
+            width: 100%;
+            line-height: 1.6;
+        }
+
+            .footer p {
+                margin-bottom: 2px;
+            }
+
+            .footer a {
+                color: var(--accent-color);
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+
+                .footer a:hover {
+                    text-decoration: underline;
+                    filter: brightness(1.2);
+                }
+
+        .button-row {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+        }
+
+            .button-row > .btn {
+                flex: 1;
+            }
+
+        .search-container {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #pixabaySearchInput {
+            flex-grow: 1;
+            padding: 0 15px;
+            height: 42px;
+            box-sizing: border-box;
+            border-radius: var(--button-border-radius);
+            background-color: var(--input-bg);
+            border: 1.5px solid rgba(var(--accent-color-rgb), 0.1);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+            #pixabaySearchInput:focus {
+                border-color: var(--accent-color);
+                box-shadow: 0 0 12px rgba(var(--accent-color-rgb), 0.6);
+            }
+
+        #btnPixabaySearch {
+            flex-shrink: 0;
+            width: 46px;
+            height: 42px;
+            padding: 8px;
+            border-radius: var(--button-border-radius);
+        }
+
+            #btnPixabaySearch svg {
+                margin: 0;
+            }
+
+        #pixabayResultsContainer {
+            width: 100%;
+            height: 350px;
+            background-color: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1.5px solid rgba(var(--accent-color-rgb), 0.08);
+            padding: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+            position: relative;
+        }
+
+        #pixabayResults {
+            column-count: 2;
+            column-gap: 10px;
+        }
+
+            #pixabayResults img {
+                width: 100%;
+                height: auto;
+                border-radius: 6px;
+                cursor: pointer;
+                border: 2px solid transparent;
+                transition: all 0.15s ease-in-out;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+                break-inside: avoid;
+                margin-bottom: 10px;
+                display: block;
+            }
+
+                #pixabayResults img:hover {
+                    transform: scale(1.02);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+                    border-color: rgba(var(--accent-color-rgb), 0.5);
+                }
+
+                #pixabayResults img.selected {
+                    border-color: var(--accent-color);
+                    box-shadow: 0 0 15px rgba(var(--accent-color-rgb), 0.8), 0 0 0 2px var(--accent-color);
+                    transform: scale(1.01);
+                }
+
+        .pagination-controls {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .pagination-controls .btn {
+                width: 90px;
+                height: 40px;
+                padding: 5px;
+            }
+
+                .pagination-controls .btn svg {
+                    width: 14px;
+                    height: 14px;
+                }
+
+        #btnPrevPage svg {
+            margin-right: 6px;
+        }
+
+        #btnNextPage svg {
+            margin-left: 6px;
+            margin-right: 0;
+        }
+
+        #pixabayPageInfo {
+            font-size: 0.85rem;
+            color: var(--text-muted-color);
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .import-buttons {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+        }
+
+            .import-buttons .btn {
+                flex: 1;
+            }
+
+        #pixabayStatusMessage {
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted-color);
+            min-height: 20px;
+            padding: 5px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+            background-color: transparent;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-bg);
+            border-radius: 10px;
+            margin: 5px 0;
+            border: 1px solid rgba(var(--accent-color-rgb), 0.03);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb);
+            border-radius: 10px;
+            border: 1.5px solid var(--panel-bg-end);
+            box-shadow: 0 0 5px rgba(var(--accent-color-rgb), 0.5);
+            transition: all 0.2s ease-in-out;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background-color: #A3F9FF;
+                box-shadow: 0 0 10px rgba(var(--accent-color-rgb), 0.8);
+            }
+
+        ::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .pixabay-options {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            padding: 8px 0;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: var(--button-border-radius);
+            border: 1px solid rgba(var(--accent-color-rgb), 0.05);
+            margin-bottom: 10px;
+        }
+
+            .pixabay-options label {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                color: var(--text-muted-color);
+                font-size: 0.85rem;
+                transition: color 0.2s ease-out;
+                padding: 5px 10px;
+                border-radius: 6px;
+                border: 1px solid transparent;
+            }
+
+            .pixabay-options input[type="radio"] {
+                display: none;
+            }
+
+            .pixabay-options label:hover {
+                color: var(--text-color);
+                background-color: rgba(var(--accent-color-rgb), 0.1);
+            }
+
+            .pixabay-options input[type="radio"]:checked + span {
+                color: var(--accent-color);
+                font-weight: 600;
+                text-shadow: 0 0 5px var(--accent-glow-color-rgba);
+            }
+
+            .pixabay-options label:has(input[type="radio"]:checked) {
+                border-color: rgba(var(--accent-color-rgb), 0.3);
+                background-color: rgba(var(--accent-color-rgb), 0.08);
+            }
+    </style>
+</head>
+<body>
+    <button id="btnShowCopyright" class="icon-btn" title="Show Copyright Info">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+    </button>
+    <button id="btnShowPixabay" class="icon-btn" title="Search Stock Photos">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+    </button>
+    <button id="btnGoBack" class="icon-btn hidden" title="Go Back">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <button id="btnGoBackPixabay" class="icon-btn hidden" title="Go Back">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+
+    <div class="panel-container">
+
+        <div id="mainPanelContent" class="content-panel">
+            <div class="logo-container">
+                <div class="logo-main">Amlo</div>
+                <div class="logo-sub">PANEL</div>
+            </div>
+            <div class="w-full flex flex-col items-center gap-y-3">
+                <div class="button-row">
+                    <button id="btnTestAI" class="btn btn-ai" title="Deteksi dan proses noda secara otomatis">
+                        <svg class="btn-icon-original" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="2" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /><path d="M12 9.5L7.5 14.5M12 9.5L16.5 14.5" stroke-linecap="round" /></svg>
+                        <span>Blemishes (CloseUp Only)</span>
+                    </button>
+                </div>
+                <div class="button-row">
+                    <button id="btnRemoval" class="btn btn-ai btn-action" title="Apply Removal effect">
+                        <svg viewBox="0 0 24 24"><path d="M4 8L16 20 M16 8L4 20 M19 5L21 7 M17 3L19 5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <span>Removal</span>
+                    </button>
+                    <button id="btnRetouch" class="btn btn-ai btn-action" title="Apply Retouch effect">
+                        <svg viewBox="0 0 24 24"><path d="M12 2L9 9L2 12L9 15L12 22L15 15L22 12L15 9L12 2Z" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <span>Retouch</span>
+                    </button>
+                </div>
+                <div class="button-row">
+                    <button id="btnSkinBrightening" class="btn btn-ai btn-action" title="Apply Skin Brightening">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <span>Skin Brightening</span>
+                    </button>
+                </div>
+                <div class="button-row">
+                    <button id="btnTeethWhitening" class="btn btn-ai btn-action" title="Apply Teeth Whitening">
+                        <svg viewBox="0 0 24 24"><path d="M5 8H19V14C19 18 15.5 20 12 20C8.5 20 5 18 5 14V8Z M5 8C5 5 8 4 12 4C16 4 19 5 19 8 M10 16L14 16 M10 12L14 12" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <span>Teeth Whitening</span>
+                    </button>
+                </div>
+                <div class="button-row">
+                    <button id="btnWetLips" class="btn btn-ai btn-action" title="Apply Wet Lips effect">
+                        <svg viewBox="0 0 24 24"><path d="M12 22C16 18 20 14 20 10C20 6 16 2 12 2S4 6 4 10C4 14 8 18 12 22Z M10 12C10 13 11 14 12 14C13 14 14 13 14 12" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <span>Wet Lips</span>
+                    </button>
+                    <button id="btnRemoveOil" class="btn btn-ai btn-action" title="Apply Remove Oil effect">
+                        <svg viewBox="0 0 24 24"><path d="M12 22C16 18 20 14 20 10C20 6 16 2 12 2S4 6 4 10C4 14 8 18 12 22Z M8 12L16 12 M8 9L16 9 M8 15L16 15" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <span>Remove Oil</span>
+                    </button>
+                </div>
+                <div class="button-row">
+                    <button id="btnSkinTone" class="btn btn-ai btn-action" title="Apply Skin Tone effect">
+                        <svg viewBox="0 0 24 24"><circle cx="6.5" cy="14.5" r="1.5" /><circle cx="12" cy="14.5" r="1.5" /><circle cx="17.5" cy="14.5" r="1.5" /><path d="M5 12C5 8 8 5 12 5C16 5 19 8 19 12" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <span>Skin Tone</span>
+                    </button>
+                </div>
+            </div>
+            <div id="statusMessage">System Ready. Choose an action.</div>
+            <hr class="neon-divider" />
+            <div class="footer">
+                <p>Amlo Panel v1.12 Enhanced by Amlolife</p>
+                <p>
+                    <a href="http://amloactions.carrd.co" target="_blank" rel="noopener noreferrer">amloactions.carrd.co</a>
+                    <span> | </span>
+                    <span>@amloife</span>
+                </p>
+                <p>Piracy is strictly prohibited.</p>
+            </div>
+        </div>
+
+        <div id="copyrightPanelContent" class="content-panel hidden">
+            <h2>Copyright & Warning</h2>
+            <p>This software, including its design, code, and functionalities, is the exclusive intellectual property of <strong>Amlolife</strong>.</p>
+            <p class="text-lg font-bold text-[var(--danger-color)] text-center">DILARANG MEMBAJAK!</p>
+            <p>Unauthorized reproduction, distribution, modification, or resale of this software, in whole or in part, is strictly prohibited and will be pursued legally.</p>
+            <ul>
+                <li>You may <strong>not</strong> share, sell, or rent this software.</li>
+                <li>You may <strong>not</strong> decompile or reverse-engineer the code.</li>
+                <li>You may <strong>not</strong> use its components in other projects.</li>
+            </ul>
+            <p>We work hard to create valuable tools. Please support developers by purchasing legitimate copies.</p>
+            <p>For support, updates, and more, visit <a href="http://amloactions.carrd.co" target="_blank">amloactions.carrd.co</a>.</p>
+            <p style="margin-top: auto; text-align: center; opacity: 0.6;">© 2024-2025 Amlolife. All Rights Reserved.</p>
+        </div>
+
+        <div id="pixabayPanelContent" class="content-panel hidden">
+            <h2>Pixabay Stock Photos</h2>
+            <div class="search-container">
+                <input type="text" id="pixabaySearchInput" placeholder="Search free photos...">
+                <button id="btnPixabaySearch" class="btn btn-ai" title="Search">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
+            </div>
+
+            <div class="pixabay-options" id="pixabayImageTypeSelector">
+                <label>
+                    <input type="radio" name="imageType" id="pixabayTypePhoto" value="photo" checked>
+                    <span>Photos</span>
+                </label>
+                <label>
+                    <input type="radio" name="imageType" id="pixabayTypeIllustration" value="illustration">
+                    <span>Illustrations</span>
+                </label>
+                <label>
+                    <input type="radio" name="imageType" id="pixabayTypeVector" value="vector">
+                    <span>Vectors</span>
+                </label>
+            </div>
+            <div id="pixabayResultsContainer">
+                <div id="pixabayResults">
+                </div>
+            </div>
+            <div class="pagination-controls">
+                <button id="btnPrevPage" class="btn btn-ai" title="Previous Page" disabled>
+                    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Prev</span>
+                </button>
+                <span id="pixabayPageInfo"></span>
+                <button id="btnNextPage" class="btn btn-ai" title="Next Page" disabled>
+                    <span>Next</span>
+                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+            </div>
+            <div class="import-buttons">
+                <button id="btnImportCurrent" class="btn btn-ai" title="Import to current document" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span>Import Here</span>
+                </button>
+                <button id="btnImportNew" class="btn btn-ai" title="Import to new document" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    <span>Import New</span>
+                </button>
+            </div>
+            <div id="pixabayStatusMessage">Enter a search term and press Search.</div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    </script>
+</body>
+</html>
